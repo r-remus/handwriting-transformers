@@ -1,3 +1,5 @@
+This is a fork of [Handwriting-Transformers](https://github.com/ankanbhunia/Handwriting-Transformers). It's goal is to make the project pip-installable.
+
 # :zap: Handwriting Transformers  [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo.ipynb)
 <!-- 
 [arXiv](https://arxiv.org/abs/2112.10752) | [paper](https://openaccess.thecvf.com/content/ICCV2021/papers/Bhunia_Handwriting_Transformers_ICCV_2021_paper.pdf) | [Huggingface-demo](https://huggingface.co/spaces/ankankbhunia/HWT) | [Colab-demo](https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo.ipynb) | [BibTeX](#bibtex)
