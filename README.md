@@ -22,7 +22,7 @@ This is a fork of [Handwriting-Transformers](https://github.com/ankanbhunia/Hand
 
  
  <p align="center">
-<img src=Figures/mainfigure.jpg width="500"/>
+<img src=resources/figures/mainfigure.jpg width="500"/>
 </p>
 
 
@@ -41,7 +41,7 @@ This is a fork of [Handwriting-Transformers](https://github.com/ankanbhunia/Hand
   [Colab demo for IAM/CVL dataset](https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo.ipynb)
 
 <!-- 
-<img src="Figures/Result.gif" width="800"/>
+<img src="resources/figures/Result.gif" width="800"/>
  -->
 
 
@@ -107,11 +107,11 @@ You can train the model in any custom dataset other than IAM and CVL. The proces
 Please check the ```results``` folder in the repository to see more qualitative analysis. Also, please check out colab demo to try with your own custom text and writing style [![Colab Notebook](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo.ipynb)
 
  <p align="center">
-<img src=Figures/paperresult.jpg width="1000"/>
+<img src=resources/figures/paperresult.jpg width="1000"/>
 </p>
 
  <p align="center">
-<img src=Figures/qualresult.jpg width="1000"/>
+<img src=resources/figures/qualresult.jpg width="1000"/>
 </p>
 
 
@@ -121,13 +121,13 @@ Please check the ```results``` folder in the repository to see more qualitative 
 the same text as in the style examples to generate handwritten images.
 
  <p align="center">
-<img src=Figures/recons2.jpg width="600"/>
+<img src=resources/figures/recons2.jpg width="600"/>
 </p>
 
 <!-- 
-<img src="Figures/result.jpg" >
+<img src="resources/figures/result.jpg" >
 
-<img src="Figures/recons2.jpg" >
+<img src="resources/figures/recons2.jpg" >
  -->
 
 
