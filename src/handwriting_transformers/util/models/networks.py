@@ -3,7 +3,7 @@ import torch.nn as nn
 from torch.nn import init
 import functools
 from torch.optim import lr_scheduler
-from util.util import to_device, load_network
+from handwriting_transformers.util.util import to_device, load_network
 
 ###############################################################################
 # Helper Functions

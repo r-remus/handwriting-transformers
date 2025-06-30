@@ -5,16 +5,16 @@ os.environ["CUDA_VISIBLE_DEVICES"]="0"
 
 from pathlib import Path
 import time
-from data.dataset import TextDataset, TextDatasetval
-from models import create_model
+from handwriting_transformers.data.dataset import TextDataset, TextDatasetval
+from handwriting_transformers.models import create_model
 import torch
 import cv2
 import os
 import numpy as np
 from itertools import cycle
 from scipy import linalg
-from models.model import TRGAN
-from params import *
+from handwriting_transformers.models.model import TRGAN
+from handwriting_transformers.params import *
 from torch import nn
 import wandb
 

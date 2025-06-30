@@ -1,10 +1,10 @@
 import torch.nn as nn
-from util.util import to_device
+from handwriting_transformers.util.util import to_device
 from torch.nn import init
 import os
 import torch
-from .networks import *
-from params import *
+from handwriting_transformers.models.networks import *
+from handwriting_transformers.params import *
 
 class BidirectionalLSTM(nn.Module):
 

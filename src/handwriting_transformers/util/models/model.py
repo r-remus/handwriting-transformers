@@ -1,20 +1,20 @@
 import torch
 import pandas as pd
-from .OCR_network import *
+from handwriting_transformers.models.OCR_network import *
 from torch.nn import CTCLoss, MSELoss, L1Loss
 from torch.nn.utils import clip_grad_norm_
 import random
 import unicodedata
 import sys
 import torchvision.models as models
-from models.transformer import *
-from .BigGAN_networks import *
-from params import *
-from .OCR_network import *
-from models.blocks import LinearBlock, Conv2dBlock, ResBlocks, ActFirstResBlock
-from util.util import toggle_grad, loss_hinge_dis, loss_hinge_gen, ortho, default_ortho, toggle_grad, prepare_z_y, \
-    make_one_hot, to_device, multiple_replace, random_word
-from models.inception import InceptionV3, calculate_frechet_distance
+from handwriting_transformers.models.transformer import *
+from handwriting_transformers.models.BigGAN_networks import *
+from handwriting_transformers.params import *
+from handwriting_transformers.models.OCR_network import *
+from handwriting_transformers.models.blocks import LinearBlock, Conv2dBlock, ResBlocks, ActFirstResBlock
+from handwriting_transformers.util.util import toggle_grad, loss_hinge_dis, loss_hinge_gen, ortho, default_ortho, toggle_grad, prepare_z_y
+from handwriting_transformers.models.inception import InceptionV3, calculate_frechet_distance
+import cv2
 
 class FCNDecoder(nn.Module):
     def __init__(self, ups=3, n_res=2, dim=512, out_dim=1, res_norm='adain', activ='relu', pad_type='reflect'):
@@ -83,6 +83,9 @@ class Generator(nn.Module):
         self.l1loss = nn.L1Loss()
 
         self.noise = torch.distributions.Normal(loc=torch.tensor([0.]), scale=torch.tensor([1.0]))
+
+
+        
 
 
 
@@ -178,6 +181,24 @@ class Generator(nn.Module):
 
     def forward(self, ST, QR, QRs = None, mode = 'train'):
 
+        #Attention Visualization Init    
+
+
+        enc_attn_weights, dec_attn_weights = [], []
+
+        self.hooks = [
+         
+            self.encoder.layers[-1].self_attn.register_forward_hook(
+                lambda self, input, output: enc_attn_weights.append(output[1])
+            ),
+            self.decoder.layers[-1].multihead_attn.register_forward_hook(
+                lambda self, input, output: dec_attn_weights.append(output[1])
+            ),
+        ]
+        
+
+        #Attention Visualization Init 
+
         if IS_SEQ:
             B, N, R, C = ST.shape
             FEAT_ST = self.Feat_Encoder(ST.view(B*N, 1, R, C))
@@ -200,13 +221,11 @@ class Generator(nn.Module):
             memory = self.reparameterize(memory_mu, memory_logvar).permute(1,0,2)
 
 
-        QR_EMB = self.query_embed.weight.repeat(batch_size,1,1).permute(1,0,2)
+        QR_EMB = self.query_embed.weight[QR].permute(1,0,2)
 
         tgt = torch.zeros_like(QR_EMB)
         
         hs = self.decoder(tgt, memory, query_pos=QR_EMB)
-
-
 
         if IS_KLD:
 
@@ -229,21 +248,20 @@ class Generator(nn.Module):
         if ADD_NOISE: h = h + self.noise.sample(h.size()).squeeze(-1).to(DEVICE)
 
         h = self.linear_q(h)
-
         h = h.contiguous()
 
-        h = [torch.stack([h[i][QR[i]] for i in range(batch_size)], 0) for QR in QRs]
+        h = h.view(h.size(0), h.shape[1]*2, 4, -1)
+        h = h.permute(0, 3, 2, 1)
 
-        h_list = []
+        h = self.DEC(h)
+        
+        self.dec_attn_weights = dec_attn_weights[-1].detach()
+        self.enc_attn_weights = enc_attn_weights[-1].detach()
 
-        for h_ in h:
 
-            h_ = h_.view(h_.size(0), h_.shape[1]*2, 4, -1)
-            h_ = h_.permute(0, 3, 2, 1)
-
-            #h_ = self.DEC(h_)
-
-            h_list.append(h_)
+                
+        for hook in self.hooks:
+            hook.remove()
 
         if mode == 'test' or (not IS_CYCLE and not IS_KLD):
 
@@ -754,6 +772,112 @@ class TRGAN(nn.Module):
             self.fake = self.netG(self.sdata, self.text_encode_fake, self.text_encode_fake_js)
 
 
+
+    def visualize_attention(self):
+
+        def _norm_scores(arr):
+            return (arr - min(arr))/(max(arr) - min(arr))
+
+        simgs = self.sdata[0].detach().cpu().numpy()
+        fake = self.fake[0,0].detach().cpu().numpy()
+        slen = self.ST_LEN[0].detach().cpu().numpy()
+        selfatt = self.netG.enc_attn_weights[0].detach().cpu().numpy()
+        selfatt = np.stack([_norm_scores(i) for i in selfatt], 1)
+        fake_lab = self.words[0].decode()
+        
+        decatt = self.netG.dec_attn_weights[0].detach().cpu().numpy()
+        decatt = np.stack([_norm_scores(i) for i in decatt], 0)
+
+        STdict = {}
+        FAKEdict = {}
+        count = 0
+
+        for sim_, sle_ in zip(simgs,slen):
+
+            for pi in range(sim_.shape[1]//sim_.shape[0]):
+
+                STdict[count] = {'patch':sim_[:, pi*32:(pi+1)*32], 'ischar': sle_>=pi*32, 'encoder_attention_score': selfatt[count], 'decoder_attention_score': decatt[:,count]}
+                count = count + 1
+
+        
+        for pi in range(fake.shape[1]//resolution):  
+
+            FAKEdict[pi] = {'patch': fake[:, pi*resolution:(pi+1)*resolution]}  
+
+        show_ims = []
+
+        for idx in range(len(fake_lab)):
+
+            viz_pats = []
+            viz_lin = []
+
+            for i in STdict.keys():
+
+                if STdict[i]['ischar']:
+
+                    viz_pats.append(cv2.addWeighted(STdict[i]['patch'], 0.5, np.ones_like(STdict[i]['patch'])*STdict[i]['decoder_attention_score'][idx], 0.5, 0))
+
+                    if len(viz_pats) >= 20:
+
+                        viz_lin.append(np.concatenate(viz_pats, -1))
+
+                        viz_pats = []
+
+            
+
+
+            src = np.concatenate(viz_lin[:-2], 0)*255
+
+            viz_gts = []
+
+            for i in range(len(fake_lab)):
+
+                
+
+                #if i == idx:
+
+                    #bordersize = 5
+
+                    #FAKEdict[i]['patch'] = cv2.addWeighted(FAKEdict[i]['patch'] , 0.5, np.ones_like(FAKEdict[i]['patch'] ), 0.5, 0)
+
+
+
+        
+
+
+                img = np.zeros((54,16))
+                font = cv2.FONT_HERSHEY_SIMPLEX
+                text = fake_lab[i]
+
+                # get boundary of this text
+                textsize = cv2.getTextSize(text, font, 1, 2)[0]
+
+                # get coords based on boundary
+                textX = (img.shape[1] - textsize[0]) // 2
+                textY = (img.shape[0] + textsize[1]) // 2
+
+                # add text centered on image
+                cv2.putText(img, text, (textX, textY ), font, 1, (255, 255, 255), 2)
+
+                img = (255 - img)/255
+
+                if i == idx:
+
+                    img = (1 - img)
+
+                viz_gts.append(img)
+
+            
+
+            tgt = np.concatenate([fake[:,:len(fake_lab)*16],np.concatenate(viz_gts, -1)], 0)
+            pad_ = np.ones((tgt.shape[0], (src.shape[1]-tgt.shape[1])//2))
+            tgt = np.concatenate([pad_, tgt, pad_], -1)*255
+            final = np.concatenate([src, tgt], 0)
+
+
+            show_ims.append(final)
+
+        return show_ims
 
 
     def backward_D_OCR(self):

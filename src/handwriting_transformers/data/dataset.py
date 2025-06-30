@@ -15,7 +15,7 @@ import os
 import sys
 import pickle
 import numpy as np
-from params import *
+from handwriting_transformers.params import *
 import glob, cv2
 import torchvision.transforms as transforms
 

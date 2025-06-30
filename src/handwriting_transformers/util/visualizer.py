@@ -3,7 +3,7 @@ import os
 import sys
 import ntpath
 import time
-from . import util, html
+from handwriting_transformers.util import util, html
 from subprocess import Popen, PIPE
 from scipy.misc import imresize
 
