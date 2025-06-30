@@ -1,3 +1,4 @@
 .venv
 files
 style_examples
+__pycache__
