@@ -19,5 +19,8 @@ dependencies = [
     "tqdm~=4.67.1",
 ]
 
+[tool.setuptools]
+package-dir = {"" = "src"}
+
 [tool.setuptools.packages.find]
-where = ["."]
+where = ["src"]
