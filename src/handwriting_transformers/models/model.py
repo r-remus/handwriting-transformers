@@ -429,6 +429,65 @@ class TRGAN(nn.Module):
 
         return np.concatenate([padded_page2s_, page1s_], 1)
 
+    def generate_lines(
+            self,
+            style_examples: torch.Tensor,
+            encoded_words: torch.Tensor,
+            encoded_words_len: torch.Tensor,
+    ) -> np.ndarray:
+        """
+        Generate lines by sampling handwritten words conditioned by
+         - the textual content of the given encoded words and
+         - the visual content of the given style examples.
+
+        The number of lines is determined by TRGAN's batch size.
+        
+        Args:
+            style_examples: the style examples to condition the sampling with
+            words_encoded: the encoded words to generate
+            words_len: the length of the encoded words to generate in number of characters
+
+        Returns:
+            the generate lines
+        """
+        self.fakes = self.netG.Eval(
+            ST=style_examples,
+            QRS=encoded_words,
+        )
+
+        # gap between sampled words
+        gap = np.ones([IMG_HEIGHT, 16])
+
+        lines = []
+        for batch_idx in range(self.batch_size):
+            words = []
+            words_in_line = []
+            words_in_line_widths = []
+            for idx, sampled_word in enumerate(self.fakes):
+                # add sampled word
+                words.append((sampled_word[batch_idx, 0, :, :encoded_words_len[idx] * resolution].cpu().numpy() + 1) / 2)
+                # add gap after all words but the last
+                if idx != len(self.fakes) - 1:
+                    words.append(gap)
+                # compile line from words w/ gaps
+                if len(words) == 16 or idx == len(self.fakes) - 1:
+                    word_in_line = np.concatenate(words, axis=-1)
+                    words_in_line.append(word_in_line)
+                    words_in_line_widths.append(word_in_line.shape[1])
+                    words = []
+
+            # pad words in line
+            padded_words_line = []
+            for word_in_line in words_in_line:
+                padding = np.ones([IMG_HEIGHT, max(words_in_line_widths) - word_in_line.shape[1]])
+                padded_words_line.append(np.concatenate([word_in_line, padding], 1))
+
+            # construct final line
+            line = np.concatenate(padded_words_line, 0)
+            lines.append(line)
+
+        return np.concatenate(lines, 0)
+
     def get_current_losses(self):
         losses = {}
         losses['G'] = self.loss_G
