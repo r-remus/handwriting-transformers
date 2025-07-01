@@ -1,0 +1,6 @@
+.venv
+__pycache__
+resources/files
+resources/results
+resources/style_examples
+src/handwriting_transformers/run.py

@@ -1,10 +1,10 @@
-# :zap: Handwriting Transformers  [![Open in Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo.ipynb)
-<!-- 
-[arXiv](https://arxiv.org/abs/2112.10752) | [paper](https://openaccess.thecvf.com/content/ICCV2021/papers/Bhunia_Handwriting_Transformers_ICCV_2021_paper.pdf) | [Huggingface-demo](https://huggingface.co/spaces/ankankbhunia/HWT) | [Colab-demo](https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo.ipynb) | [BibTeX](#bibtex)
-  -->
+This is a fork of [Handwriting-Transformers](https://github.com/ankanbhunia/Handwriting-Transformers). It's goal is to make the project pip-installable.
 
+---
+
+# :zap: Handwriting Transformers
   
- <p align='center'>
+<p align='center'>
   <b>
     <a href="https://ankanbhunia.github.io/Handwriting-Transformers/">Project</a>
     |
@@ -16,31 +16,10 @@
     | 
     <a href="https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo.ipynb">Colab-demo</a>
   </b>
-</p> 
-
- 
- <p align="center">
-<img src=Figures/mainfigure.jpg width="500"/>
 </p>
-
-
-## News
-
-- **2024.02** Test the model using custom handwriting samples:
-
--
-  :rocket:
-  [A Huggingface demo is now available and running](https://huggingface.co/spaces/ankankbhunia/HWT)
-- 
-  :rocket:
-  [Colab demo for custom handwritings](https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo_custom_handwriting.ipynb)
-- 
-  :rocket:
-  [Colab demo for IAM/CVL dataset](https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo.ipynb)
-
-<!-- 
-<img src="Figures/Result.gif" width="800"/>
- -->
+<p align="center">
+  <img src=resources/figures/mainfigure.jpg width="500"/>
+</p>
 
 
  ## Abstract
@@ -57,36 +36,31 @@
 >*We propose a novel transformer-based styled handwritten text image generation approach, HWT, that strives to learn both style-content entanglement as well as global and local writing style patterns. The proposed HWT captures the long and short range  relationships within the style examples through a self-attention mechanism, thereby encoding both global and local style patterns. Further, the proposed transformer-based HWT comprises an encoder-decoder attention that enables style-content entanglement by gathering the style representation of each query character. To the best of our knowledge, we are the first to introduce a transformer-based generative network for styled handwritten text generation. Our proposed HWT generates realistic styled handwritten text images and significantly outperforms the state-of-the-art demonstrated through extensive qualitative, quantitative and human-based evaluations. The proposed HWT can handle arbitrary length of text and any desired writing style in a few-shot setting. Further, our HWT generalizes well to the challenging scenario where both words and writing style are unseen during training, generating realistic styled handwritten text images.* 
 
 
-## Software environment
+## Installation
 
-- Python 3.7
-- PyTorch >=1.4
+The project can now be installed via
+```
+pip install git+https://github.com/r-remus/handwriting-transformers
+``` 
 
-## Setup & Training
+While the original repository requires Python 3.7 and PyTorch >= 1.4, this requires Python 3.9-3.12 and PyTorch >=2.7.
 
-Please see ```INSTALL.md``` for installing required libraries. You can change the content in the file ```mytext.txt``` to visualize generated handwriting while training.   
+Pickled dataset files and models can be downloaded from [here](https://drive.google.com/file/d/16g9zgysQnWk7-353_tMig92KsZsrcM6k/view?usp=sharing) and should be extracted to ```resources/files```.
 
 
-Download Dataset files and models from https://drive.google.com/file/d/16g9zgysQnWk7-353_tMig92KsZsrcM6k/view?usp=sharing and unzip inside ```files``` folder. In short, run following lines in a bash terminal. 
+## Training
+
+To train the model run
 
 ```bash
-git clone https://github.com/ankanbhunia/Handwriting-Transformers
-cd Handwriting-Transformers
-pip install --upgrade --no-cache-dir gdown
-gdown --id 16g9zgysQnWk7-353_tMig92KsZsrcM6k && unzip files.zip && rm files.zip
+python src/handwriting_transformers/train.py
 ```
 
-To start training the model: run
+If you want to use ```wandb``` please install it and change your auth_key in the ```src/handwriting_transformers/train.py``` file (ln:4). 
 
-```
-python train.py
-```
+You can change different parameters in the ```src/handwriting_transformers/params.py``` file.
 
-If you want to use ```wandb``` please install it and change your auth_key in the ```train.py``` file (ln:4). 
-
-You can change different parameters in the ```params.py``` file.
-
-You can train the model in any custom dataset other than IAM and CVL. The process involves creating a ```dataset_name.pickle``` file and placing it inside ```files``` folder. The structure of ```dataset_name.pickle``` is a simple python dictionary. 
+You can train the model on any custom dataset other than IAM and CVL. The process involves creating a ```dataset_name.pickle``` file and placing it inside ```resources/files``` folder. The structure of ```dataset_name.pickle``` is a simple python dictionary:
 
 ```python
 {
@@ -94,39 +68,6 @@ You can train the model in any custom dataset other than IAM and CVL. The proces
 'test': [{writer_3:[{'img': <PIL.IMAGE>, 'label':<str_label>},...]}, {writer_4:[{'img': <PIL.IMAGE>, 'label':<str_label>},...]},...], 
 }
 ```
- ## Run Demo using Docker
-```
- docker run -it -p 7860:7860 --platform=linux/amd64 \
-	registry.hf.space/ankankbhunia-hwt:latest python app.py
- ```
-
-## Handwriting synthesis results
-
-Please check the ```results``` folder in the repository to see more qualitative analysis. Also, please check out colab demo to try with your own custom text and writing style [![Colab Notebook](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/ankanbhunia/Handwriting-Transformers/blob/main/demo.ipynb)
-
- <p align="center">
-<img src=Figures/paperresult.jpg width="1000"/>
-</p>
-
- <p align="center">
-<img src=Figures/qualresult.jpg width="1000"/>
-</p>
-
-
-
-## Handwriting reconstruction results
- Reconstruction results using the proposed HWT in comparison to GANwriting and Davis et al. We use
-the same text as in the style examples to generate handwritten images.
-
- <p align="center">
-<img src=Figures/recons2.jpg width="600"/>
-</p>
-
-<!-- 
-<img src="Figures/result.jpg" >
-
-<img src="Figures/recons2.jpg" >
- -->
 
 
 ## Citation
