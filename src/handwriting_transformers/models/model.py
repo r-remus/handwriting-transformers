@@ -1,24 +1,20 @@
-import torch
-import pandas as pd
-from handwriting_transformers.models.OCR_network import *
-from torch.nn import CTCLoss, MSELoss, L1Loss
-from torch.nn.utils import clip_grad_norm_
-import random
-import unicodedata
 import sys
+import torch
+import cv2
+import shutil
 import torchvision.models as models
+import numpy as np
+from torch.nn import CTCLoss
+from torch.nn.utils import clip_grad_norm_
 from handwriting_transformers.models.transformer import *
 from handwriting_transformers.models.BigGAN_networks import *
 from handwriting_transformers.params import *
 from handwriting_transformers.models.OCR_network import *
-from handwriting_transformers.models.blocks import LinearBlock, Conv2dBlock, ResBlocks, ActFirstResBlock
-from handwriting_transformers.util.util import toggle_grad, loss_hinge_dis, loss_hinge_gen, ortho, default_ortho, toggle_grad, prepare_z_y
-from handwriting_transformers.models.inception import InceptionV3, calculate_frechet_distance
+from handwriting_transformers.models.blocks import Conv2dBlock, ResBlocks
+from handwriting_transformers.util.util import make_one_hot, toggle_grad, loss_hinge_dis, loss_hinge_gen, toggle_grad
+from handwriting_transformers.models.inception import InceptionV3
 from handwriting_transformers.data.dataset import TextDataset, TextDatasetval
-import cv2
-import time
-import matplotlib.pyplot as plt
-import shutil
+
 
 def get_rgb(x):
   R = 255 - int(int(x>0.5)*255*(x-0.5)/0.5)
@@ -550,9 +546,6 @@ class TRGAN(nn.Module):
             padded_page2s.append(np.concatenate([para, np.ones([ para.shape[0], max_wid-para.shape[1]])], 1))
 
         padded_page2s_ =  np.concatenate(padded_page2s,0)
-
-
-
 
         return np.concatenate([padded_page2s_, page1s_], 1)
 
