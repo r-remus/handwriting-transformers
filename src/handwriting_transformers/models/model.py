@@ -447,7 +447,6 @@ class TRGAN(nn.Module):
         return losses
 
     def load_networks(self, epoch):
-        BaseModel.load_networks(self, epoch)
         if self.opt.single_writer:
             load_filename = '%s_z.pkl' % (epoch)
             load_path = os.path.join(self.save_dir, load_filename)
