@@ -74,7 +74,7 @@ def load_itw_samples(folder_path, num_samples = 15):
 
   imgs_pad = torch.cat(imgs_pad, 0)
 
-  return imgs_pad.unsqueeze(0).cuda(), torch.Tensor(imgs_wids).unsqueeze(0).cuda()
+  return imgs_pad.unsqueeze(0), torch.Tensor(imgs_wids).unsqueeze(0)
 
 
 class TextDataset():
