@@ -1,7 +1,8 @@
 .venv
 .vscode
 __pycache__
-resources/files
+resources/handwriting_transformers
 resources/results
 resources/style_examples
 src/handwriting_transformers/run.py
+generated.png

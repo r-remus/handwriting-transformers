@@ -45,7 +45,7 @@ pip install git+https://github.com/r-remus/handwriting-transformers
 
 While the original repository requires Python 3.7 and PyTorch >= 1.4, this requires Python 3.9-3.12 and PyTorch >=2.7.
 
-Pickled dataset files and models can be downloaded from [here](https://drive.google.com/file/d/16g9zgysQnWk7-353_tMig92KsZsrcM6k/view?usp=sharing) and should be extracted to ```resources/files```.
+Pickled dataset files and models can be downloaded from [here](https://drive.google.com/file/d/16g9zgysQnWk7-353_tMig92KsZsrcM6k/view?usp=sharing) and should be extracted to ```resources/handwriting_transformers/files```.
 
 
 ## Training

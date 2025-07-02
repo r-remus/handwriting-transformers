@@ -298,7 +298,7 @@ class TRGAN(nn.Module):
         self.lex = lex
 
 
-        f = open('resources/mytext.txt', 'r') 
+        f = open('resources/handwriting_transformers/mytext.txt', 'r') 
 
         self.text = [j.encode() for j in sum([i.split(' ') for i in f.readlines()], [])]#[:NUM_EXAMPLES]
         self.eval_text_encode, self.eval_len_text = self.netconverter.encode(self.text)
