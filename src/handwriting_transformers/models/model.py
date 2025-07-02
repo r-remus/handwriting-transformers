@@ -99,10 +99,11 @@ class Generator(nn.Module):
         self.decoder = TransformerDecoder(decoder_layer, TN_DEC_LAYERS, decoder_norm,
                                           return_intermediate=True)
 
-        self.Feat_Encoder = nn.Sequential(*([nn.Conv2d(INP_CHANNEL, 64, kernel_size=7, stride=2, padding=3, bias=False)] +list(models.resnet18(pretrained=True).children())[1:-2]))
+        self.Feat_Encoder = nn.Sequential(
+            *([nn.Conv2d(INP_CHANNEL, 64, kernel_size=7, stride=2, padding=3, bias=False)]+list(models.resnet18(weights='IMAGENET1K_V1').children())[1:-2])
+        )
         
         self.query_embed = nn.Embedding(VOCAB_SIZE, TN_HIDDEN_DIM)
-
 
         self.linear_q = nn.Linear(TN_DIM_FEEDFORWARD, TN_DIM_FEEDFORWARD*8)
 
