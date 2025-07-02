@@ -1,4 +1,6 @@
-This is a fork of [Handwriting-Transformers](https://github.com/ankanbhunia/Handwriting-Transformers). It's goal is to make the project pip-installable.
+This is a fork of [Handwriting-Transformers](https://github.com/ankanbhunia/Handwriting-Transformers). It's goal is to make the project
+ * pip-installable and
+ * easier to use as a service.
 
 ---
 
@@ -45,7 +47,7 @@ pip install git+https://github.com/r-remus/handwriting-transformers
 
 While the original repository requires Python 3.7 and PyTorch >= 1.4, this requires Python 3.9-3.12 and PyTorch >=2.7.
 
-Pickled dataset files and models can be downloaded from [here](https://drive.google.com/file/d/16g9zgysQnWk7-353_tMig92KsZsrcM6k/view?usp=sharing) and should be extracted to ```resources/files```.
+Pickled dataset files and models can be downloaded from [here](https://drive.google.com/file/d/16g9zgysQnWk7-353_tMig92KsZsrcM6k/view?usp=sharing) and should be extracted to ```resources/handwriting_transformers/```.
 
 
 ## Training
@@ -60,7 +62,7 @@ If you want to use ```wandb``` please install it and change your auth_key in the
 
 You can change different parameters in the ```src/handwriting_transformers/params.py``` file.
 
-You can train the model on any custom dataset other than IAM and CVL. The process involves creating a ```dataset_name.pickle``` file and placing it inside ```resources/files``` folder. The structure of ```dataset_name.pickle``` is a simple python dictionary:
+You can train the model on any custom dataset other than IAM and CVL. The process involves creating a ```dataset_name.pickle``` file and placing it inside ```resources/handwriting_transformers``` folder. The structure of ```dataset_name.pickle``` is a simple python dictionary:
 
 ```python
 {
