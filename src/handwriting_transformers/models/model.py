@@ -296,13 +296,9 @@ class TRGAN(nn.Module):
             if len(word)<20:
                 lex.append(word)
         self.lex = lex
-
-
-        f = open('resources/handwriting_transformers/mytext.txt', 'r') 
-
-        self.text = [j.encode() for j in sum([i.split(' ') for i in f.readlines()], [])]#[:NUM_EXAMPLES]
-        self.eval_text_encode, self.eval_len_text = self.netconverter.encode(self.text)
-        self.eval_text_encode = self.eval_text_encode.to(DEVICE).repeat(self.batch_size, 1, 1)
+        self.text = None
+        self.eval_text_encode = None
+        self.eval_len_text = None
 
     def save_images_for_fid_calculation(self, dataloader, epoch, mode = 'train'):
         self.real_base = os.path.join('saved_images', EXP_NAME, 'Real')
