@@ -496,7 +496,7 @@ def D_arch(ch=64, attention='64', input_nc=3, ksize='333333', dilation='111111')
 
 class Discriminator(nn.Module):
 
-    def __init__(self, D_ch=64, D_wide=True, resolution=resolution,
+    def __init__(self, D_ch=64, D_wide=True, resolution=RESOLUTION,
                  D_kernel_size=3, D_attn='64', n_classes=VOCAB_SIZE,
                  num_D_SVs=1, num_D_SV_itrs=1, D_activation=nn.ReLU(inplace=False),
                  SN_eps=1e-8, output_dim=1, D_mixed_precision=False, D_fp16=False,
@@ -623,7 +623,7 @@ class Discriminator(nn.Module):
 
 class WDiscriminator(nn.Module):
 
-    def __init__(self, D_ch=64, D_wide=True, resolution=resolution,
+    def __init__(self, D_ch=64, D_wide=True, resolution=RESOLUTION,
                  D_kernel_size=3, D_attn='64', n_classes=VOCAB_SIZE,
                  num_D_SVs=1, num_D_SV_itrs=1, D_activation=nn.ReLU(inplace=False),
                  SN_eps=1e-8, output_dim=NUM_WRITERS, D_mixed_precision=False, D_fp16=False,

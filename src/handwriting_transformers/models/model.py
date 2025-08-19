@@ -14,6 +14,30 @@ from handwriting_transformers.models.blocks import Conv2dBlock, ResBlocks
 from handwriting_transformers.util.util import make_one_hot, toggle_grad, loss_hinge_dis, loss_hinge_gen, toggle_grad
 from handwriting_transformers.models.inception import InceptionV3
 from handwriting_transformers.data.dataset import TextDataset, TextDatasetval
+from dataclasses import dataclass
+from typing import List
+
+
+@dataclass
+class HwtBoundingBox:
+    """
+    Bounding box of a word within a generated text line image.
+
+    Coordinates are in pixels relative to the text line image.
+    """
+    x_min: int
+    y_min: int
+    x_max: int
+    y_max: int
+
+
+@dataclass
+class HwtTextLine:
+    """
+    Container for a generated text line image and its word bounding boxes.
+    """
+    image: np.ndarray
+    word_bounding_boxes: List[HwtBoundingBox]
 
 
 def get_rgb(x):
@@ -365,7 +389,7 @@ class TRGAN(nn.Module):
             gap = np.ones([IMG_HEIGHT,16])
             line_wids = []
             for idx, fake_ in enumerate(self.fakes):
-                word_t.append((fake_[batch_idx,0,:,:eval_len_text[idx]*resolution].cpu().numpy()+1)/2)
+                word_t.append((fake_[batch_idx,0,:,:eval_len_text[idx]*RESOLUTION].cpu().numpy()+1)/2)
                 word_t.append(gap)
                 if len(word_t) == 16 or idx == len(self.fakes) - 1:
                     line_ = np.concatenate(word_t, -1)
@@ -426,64 +450,63 @@ class TRGAN(nn.Module):
 
         return np.concatenate([padded_page2s_, page1s_], 1)
 
-    def generate_lines(
+    def generate_text_line(
             self,
             style_examples: torch.Tensor,
             encoded_words: torch.Tensor,
             encoded_words_len: torch.Tensor,
-    ) -> np.ndarray:
+            gap_width_min: int = 10,
+            gap_width_max: int = 20,
+    ) -> HwtTextLine:
         """
-        Generate lines by sampling handwritten words conditioned by
+        Generate a single text line by sampling handwritten words conditioned by
          - the textual content of the given encoded words and
          - the visual content of the given style examples.
-
-        The number of lines is determined by TRGAN's batch size.
         
         Args:
             style_examples: the style examples to condition the sampling with
             words_encoded: the encoded words to generate
             words_len: the length of the encoded words to generate in number of characters
+            gap_width_min: the minimum width of the gaps between words (inclusive)
+            gap_width_max: the maximum width of the gaps between words (inclusive)
 
         Returns:
-            the generate lines
+            the generated text line
         """
-        self.fakes = self.netG.Eval(
+        sampled_words = self.netG.Eval(
             ST=style_examples,
             QRS=encoded_words,
         )
 
-        # gap between sampled words
-        gap = np.ones([IMG_HEIGHT, 16])
+        words = []
+        word_bounding_boxes: List[HwtBoundingBox] = []
+        current_x = 0
+        for idx, sampled_word in enumerate(sampled_words):
+            # sample word image
+            word_width_px = int(encoded_words_len[idx] * RESOLUTION)
+            word = sampled_word[0, 0, :, :word_width_px]
+            # normalize word image to [0, 1]
+            word = (word.cpu().numpy() + 1) / 2
+            words.append(word)
+            # the word's bounding box spans the full text line height
+            x_min = current_x
+            x_max = current_x + word.shape[1]
+            word_bounding_box = HwtBoundingBox(x_min=x_min, y_min=0, x_max=x_max, y_max=IMG_HEIGHT)
+            word_bounding_boxes.append(word_bounding_box)
+            current_x = x_max
+            # insert random gaps between all sampled words but the last one
+            if idx != len(sampled_words) - 1:
+                # gap width max is inclusive
+                gap_width = int(np.random.randint(gap_width_min, gap_width_max + 1))
+                gap = np.ones([IMG_HEIGHT, gap_width])
+                words.append(gap)
+                current_x += gap_width
 
-        lines = []
-        for batch_idx in range(self.batch_size):
-            words = []
-            words_in_line = []
-            words_in_line_widths = []
-            for idx, sampled_word in enumerate(self.fakes):
-                # add sampled word
-                words.append((sampled_word[batch_idx, 0, :, :encoded_words_len[idx] * resolution].cpu().numpy() + 1) / 2)
-                # add gap after all words but the last
-                if idx != len(self.fakes) - 1:
-                    words.append(gap)
-                # compile line from words w/ gaps
-                if len(words) == 16 or idx == len(self.fakes) - 1:
-                    word_in_line = np.concatenate(words, axis=-1)
-                    words_in_line.append(word_in_line)
-                    words_in_line_widths.append(word_in_line.shape[1])
-                    words = []
-
-            # pad words in line
-            padded_words_line = []
-            for word_in_line in words_in_line:
-                padding = np.ones([IMG_HEIGHT, max(words_in_line_widths) - word_in_line.shape[1]])
-                padded_words_line.append(np.concatenate([word_in_line, padding], 1))
-
-            # construct final line
-            line = np.concatenate(padded_words_line, 0)
-            lines.append(line)
-
-        return np.concatenate(lines, 0)
+        # compile text line from word images
+        return HwtTextLine(
+            image=np.concatenate(words, axis=-1),
+            word_bounding_boxes=word_bounding_boxes,
+        )
 
     def get_current_losses(self):
         losses = {}
