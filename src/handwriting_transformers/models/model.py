@@ -467,7 +467,7 @@ class TRGAN(nn.Module):
                 if idx != len(self.fakes) - 1:
                     words.append(gap)
                 # compile line from words w/ gaps
-                if len(words) == 16 or idx == len(self.fakes) - 1:
+                else:
                     word_in_line = np.concatenate(words, axis=-1)
                     words_in_line.append(word_in_line)
                     words_in_line_widths.append(word_in_line.shape[1])
