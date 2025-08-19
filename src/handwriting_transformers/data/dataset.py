@@ -186,7 +186,7 @@ class TextDatasetval:
 class TextCollator:
 
     def __init__(self):
-        self.resolution = resolution
+        self.resolution = RESOLUTION
 
     def __call__(self, batch):
 

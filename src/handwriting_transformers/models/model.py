@@ -365,7 +365,7 @@ class TRGAN(nn.Module):
             gap = np.ones([IMG_HEIGHT,16])
             line_wids = []
             for idx, fake_ in enumerate(self.fakes):
-                word_t.append((fake_[batch_idx,0,:,:eval_len_text[idx]*resolution].cpu().numpy()+1)/2)
+                word_t.append((fake_[batch_idx,0,:,:eval_len_text[idx]*RESOLUTION].cpu().numpy()+1)/2)
                 word_t.append(gap)
                 if len(word_t) == 16 or idx == len(self.fakes) - 1:
                     line_ = np.concatenate(word_t, -1)
@@ -462,7 +462,7 @@ class TRGAN(nn.Module):
             words_in_line_widths = []
             for idx, sampled_word in enumerate(self.fakes):
                 # add sampled word
-                words.append((sampled_word[batch_idx, 0, :, :encoded_words_len[idx] * resolution].cpu().numpy() + 1) / 2)
+                words.append((sampled_word[batch_idx, 0, :, :encoded_words_len[idx] * RESOLUTION].cpu().numpy() + 1) / 2)
                 # add gap after all words but the last
                 if idx != len(self.fakes) - 1:
                     words.append(gap)

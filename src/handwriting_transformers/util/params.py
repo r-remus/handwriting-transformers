@@ -7,7 +7,7 @@ EXP_NAME = "IAM-1000"; RESUME = True
 ###############################################
 
 IMG_HEIGHT = 32
-resolution = 16
+RESOLUTION = 16
 batch_size = 8
 NUM_EXAMPLES = 50
 TN_HIDDEN_DIM = 512

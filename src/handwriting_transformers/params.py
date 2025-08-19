@@ -16,7 +16,7 @@ ENGLISH_WORDS_PATH = 'resources/handwriting_transformers/english_words.txt'
 ###############################################
 
 IMG_HEIGHT = 32
-resolution = 16
+RESOLUTION = 16
 batch_size = 8
 NUM_EXAMPLES = 15#15
 TN_HIDDEN_DIM = 512
