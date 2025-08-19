@@ -426,18 +426,16 @@ class TRGAN(nn.Module):
 
         return np.concatenate([padded_page2s_, page1s_], 1)
 
-    def generate_lines(
+    def generate_text_line(
             self,
             style_examples: torch.Tensor,
             encoded_words: torch.Tensor,
             encoded_words_len: torch.Tensor,
     ) -> np.ndarray:
         """
-        Generate lines by sampling handwritten words conditioned by
+        Generate a single text line by sampling handwritten words conditioned by
          - the textual content of the given encoded words and
          - the visual content of the given style examples.
-
-        The number of lines is determined by TRGAN's batch size.
         
         Args:
             style_examples: the style examples to condition the sampling with
@@ -445,7 +443,7 @@ class TRGAN(nn.Module):
             words_len: the length of the encoded words to generate in number of characters
 
         Returns:
-            the generate lines
+            the generated text line
         """
         self.fakes = self.netG.Eval(
             ST=style_examples,
@@ -455,35 +453,20 @@ class TRGAN(nn.Module):
         # gap between sampled words
         gap = np.ones([IMG_HEIGHT, 16])
 
-        lines = []
-        for batch_idx in range(self.batch_size):
-            words = []
-            words_in_line = []
-            words_in_line_widths = []
-            for idx, sampled_word in enumerate(self.fakes):
-                # add sampled word
-                words.append((sampled_word[batch_idx, 0, :, :encoded_words_len[idx] * RESOLUTION].cpu().numpy() + 1) / 2)
-                # add gap after all words but the last
-                if idx != len(self.fakes) - 1:
-                    words.append(gap)
-                # compile line from words w/ gaps
-                else:
-                    word_in_line = np.concatenate(words, axis=-1)
-                    words_in_line.append(word_in_line)
-                    words_in_line_widths.append(word_in_line.shape[1])
-                    words = []
+        words = []
+        for idx, sampled_word in enumerate(self.fakes):
+            # sample word image
+            word = sampled_word[0, 0, :, :encoded_words_len[idx] * RESOLUTION]
+            # normalize word image to [0, 1]
+            word = (word.cpu().numpy() + 1) / 2
+            words.append(word)
+            # add gap after all word images but the last one
+            if idx != len(self.fakes) - 1:
+                words.append(gap)
 
-            # pad words in line
-            padded_words_line = []
-            for word_in_line in words_in_line:
-                padding = np.ones([IMG_HEIGHT, max(words_in_line_widths) - word_in_line.shape[1]])
-                padded_words_line.append(np.concatenate([word_in_line, padding], 1))
-
-            # construct final line
-            line = np.concatenate(padded_words_line, 0)
-            lines.append(line)
-
-        return np.concatenate(lines, 0)
+        # compile line from word images w/ gaps
+        text_line = np.concatenate(words, axis=-1)
+        return text_line
 
     def get_current_losses(self):
         losses = {}
