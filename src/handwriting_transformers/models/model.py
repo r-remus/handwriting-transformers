@@ -14,6 +14,30 @@ from handwriting_transformers.models.blocks import Conv2dBlock, ResBlocks
 from handwriting_transformers.util.util import make_one_hot, toggle_grad, loss_hinge_dis, loss_hinge_gen, toggle_grad
 from handwriting_transformers.models.inception import InceptionV3
 from handwriting_transformers.data.dataset import TextDataset, TextDatasetval
+from dataclasses import dataclass
+from typing import List
+
+
+@dataclass
+class HwtBoundingBox:
+    """
+    Bounding box of a word within a generated text line image.
+
+    Coordinates are in pixels relative to the text line image.
+    """
+    x_min: int
+    y_min: int
+    x_max: int
+    y_max: int
+
+
+@dataclass
+class HwtTextLine:
+    """
+    Container for a generated text line image and its word bounding boxes.
+    """
+    image: np.ndarray
+    word_bounding_boxes: List[HwtBoundingBox]
 
 
 def get_rgb(x):
@@ -433,7 +457,7 @@ class TRGAN(nn.Module):
             encoded_words_len: torch.Tensor,
             gap_width_min: int = 10,
             gap_width_max: int = 20,
-    ) -> np.ndarray:
+    ) -> HwtTextLine:
         """
         Generate a single text line by sampling handwritten words conditioned by
          - the textual content of the given encoded words and
@@ -455,22 +479,34 @@ class TRGAN(nn.Module):
         )
 
         words = []
+        word_bounding_boxes: List[HwtBoundingBox] = []
+        current_x = 0
         for idx, sampled_word in enumerate(sampled_words):
             # sample word image
-            word = sampled_word[0, 0, :, :encoded_words_len[idx] * RESOLUTION]
+            word_width_px = int(encoded_words_len[idx] * RESOLUTION)
+            word = sampled_word[0, 0, :, :word_width_px]
             # normalize word image to [0, 1]
             word = (word.cpu().numpy() + 1) / 2
             words.append(word)
+            # the word's bounding box spans the full text line height
+            x_min = current_x
+            x_max = current_x + word.shape[1]
+            word_bounding_box = HwtBoundingBox(x_min=x_min, y_min=0, x_max=x_max, y_max=IMG_HEIGHT)
+            word_bounding_boxes.append(word_bounding_box)
+            current_x = x_max
             # insert random gaps between all sampled words but the last one
             if idx != len(sampled_words) - 1:
                 # gap width max is inclusive
                 gap_width = int(np.random.randint(gap_width_min, gap_width_max + 1))
                 gap = np.ones([IMG_HEIGHT, gap_width])
                 words.append(gap)
+                current_x += gap_width
 
         # compile text line from word images
-        text_line = np.concatenate(words, axis=-1)
-        return text_line
+        return HwtTextLine(
+            image=np.concatenate(words, axis=-1),
+            word_bounding_boxes=word_bounding_boxes,
+        )
 
     def get_current_losses(self):
         losses = {}
