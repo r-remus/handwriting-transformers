@@ -431,6 +431,8 @@ class TRGAN(nn.Module):
             style_examples: torch.Tensor,
             encoded_words: torch.Tensor,
             encoded_words_len: torch.Tensor,
+            gap_width_min: int = 10,
+            gap_width_max: int = 20,
     ) -> np.ndarray:
         """
         Generate a single text line by sampling handwritten words conditioned by
@@ -441,6 +443,8 @@ class TRGAN(nn.Module):
             style_examples: the style examples to condition the sampling with
             words_encoded: the encoded words to generate
             words_len: the length of the encoded words to generate in number of characters
+            gap_width_min: the minimum width of the gaps between words (inclusive)
+            gap_width_max: the maximum width of the gaps between words (inclusive)
 
         Returns:
             the generated text line
@@ -450,9 +454,6 @@ class TRGAN(nn.Module):
             QRS=encoded_words,
         )
 
-        # gap between sampled words
-        gap = np.ones([IMG_HEIGHT, 16])
-
         words = []
         for idx, sampled_word in enumerate(sampled_words):
             # sample word image
@@ -460,11 +461,14 @@ class TRGAN(nn.Module):
             # normalize word image to [0, 1]
             word = (word.cpu().numpy() + 1) / 2
             words.append(word)
-            # add gap after all word images but the last one
+            # insert random gaps between all sampled words but the last one
             if idx != len(sampled_words) - 1:
+                # gap width max is inclusive
+                gap_width = int(np.random.randint(gap_width_min, gap_width_max + 1))
+                gap = np.ones([IMG_HEIGHT, gap_width])
                 words.append(gap)
 
-        # compile line from word images w/ gaps
+        # compile text line from word images
         text_line = np.concatenate(words, axis=-1)
         return text_line
 
