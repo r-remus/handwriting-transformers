@@ -445,7 +445,7 @@ class TRGAN(nn.Module):
         Returns:
             the generated text line
         """
-        self.fakes = self.netG.Eval(
+        sampled_words = self.netG.Eval(
             ST=style_examples,
             QRS=encoded_words,
         )
@@ -454,14 +454,14 @@ class TRGAN(nn.Module):
         gap = np.ones([IMG_HEIGHT, 16])
 
         words = []
-        for idx, sampled_word in enumerate(self.fakes):
+        for idx, sampled_word in enumerate(sampled_words):
             # sample word image
             word = sampled_word[0, 0, :, :encoded_words_len[idx] * RESOLUTION]
             # normalize word image to [0, 1]
             word = (word.cpu().numpy() + 1) / 2
             words.append(word)
             # add gap after all word images but the last one
-            if idx != len(self.fakes) - 1:
+            if idx != len(sampled_words) - 1:
                 words.append(gap)
 
         # compile line from word images w/ gaps
