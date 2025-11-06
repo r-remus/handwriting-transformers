@@ -10,13 +10,13 @@ authors = [
     { name = "Ankan Bhunia", email = "ankan.bhunia@gmail.com" },
 ]
 dependencies = [
-    "torch~=2.7.1",
-    "torchvision~=0.22.1",
-    "scipy~=1.15.0",
-    "opencv-python-headless~=4.11.0.86",
-    "Pillow~=11.2.1",
-    "matplotlib~=3.10.3",
-    "tqdm~=4.67.1",
+    "torch~=2.6",
+    "torchvision~=0.21",
+    "scipy~=1.15",
+    "opencv-python-headless~=4.11",
+    "Pillow~=11.2",
+    "matplotlib~=3.10",
+    "tqdm~=4.67",
 ]
 
 [tool.setuptools]
