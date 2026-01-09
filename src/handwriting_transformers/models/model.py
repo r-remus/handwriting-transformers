@@ -256,7 +256,11 @@ class Generator(nn.Module):
 
 class TRGAN(nn.Module):
 
-    def __init__(self, batch_size=batch_size):
+    def __init__(
+        self,
+        batch_size=batch_size,
+        words_file_path: str = ENGLISH_WORDS_PATH,
+    ):
         super(TRGAN, self).__init__() 
         
         self.batch_size = batch_size
@@ -309,7 +313,7 @@ class TRGAN(nn.Module):
         self.KLD = 0 
 
 
-        with open(ENGLISH_WORDS_PATH, 'rb') as f:
+        with open(words_file_path, 'rb') as f:
             self.lex = f.read().splitlines()
         lex=[]
         for word in self.lex:
